@@ -32,6 +32,7 @@ defaultversion = 'current'
 default_runlimit = '8:00'
 ####################################################
 
+
 def getmasterbyjobID(jobID):
     masterhost = None
     bjobsout = subprocess.check_output("bjobs -Xr -noheader -J master -o \"JOBID EXEC_HOST\" 2> /dev/null", universal_newlines=True, shell=True)
@@ -40,6 +41,7 @@ def getmasterbyjobID(jobID):
         if str(jobID) in master.split()[0]:
             masterhost = master.split('*')[1]
     return masterhost
+
 
 def getallmasters():
     masters = []
@@ -74,6 +76,7 @@ def getworkersbymasterID(masterID):
         workers.append(workerdict)
     return workers
 
+
 def getdriversbymasterID(masterID):
     drivers = []
     command = "bjobs -X -noheader -J D{} -o \"JOBID STAT EXEC_HOST\" 2> /dev/null".format(masterID)
@@ -83,6 +86,7 @@ def getdriversbymasterID(masterID):
         driverdict = {'jobid':outline[0], 'status':outline[1], 'host':outline[2].split('*')[1]}
         drivers.append(driverdict)
     return drivers
+
 
 def launchall(runtime):
     sparktype = args.version
@@ -96,6 +100,7 @@ def launchall(runtime):
     print 'Spark job submitted with {} workers ({} slots)'.format(args.nnodes, slots)
     jobID = output[1].lstrip("<").rstrip(">")
     return jobID
+
 
 def launch(runtime):
     if not os.path.exists(os.path.expanduser('~/sparklogs')):
@@ -112,6 +117,7 @@ def launch(runtime):
         traceback.print_exc()
         sys.exit(1)
     return masterjobID
+
 
 def startmaster(sparktype, runtime):
     options = ''
@@ -130,6 +136,7 @@ def startmaster(sparktype, runtime):
         sys.exit(1)
     print "Master submitted. Job ID is {}".format(masterjobID)
     return masterjobID
+
 
 def startworker(sparktype, masterjobID, runtime):
     masterURL = None
@@ -156,6 +163,7 @@ def startworker(sparktype, masterjobID, runtime):
     except:
         print "Worker launch failed."
         traceback.print_exc()
+
         
 def getenvironment():
     #Set MASTER
@@ -178,6 +186,7 @@ def getenvironment():
     if sparkpath not in os.environ['PATH']:
         os.environ["PATH"] = str("{}/bin:{}".format(sparkpath, os.environ['PATH']))
 
+
 def checkslots(nodeslots=default_node_slots):
     if nodeslots == default_node_slots:
         options = "{} {}".format(default_node_slots, default_options)
@@ -188,6 +197,7 @@ def checkslots(nodeslots=default_node_slots):
         sys.exit()
     return options
 
+
 def login(nodeslots):
     getenvironment()
     options = checkslots(nodeslots)
@@ -195,6 +205,7 @@ def login(nodeslots):
         options += ' -P {}'.format(args.project)
     command = "bsub -Is -n {} /bin/bash".format(options)
     os.system(command)
+
     
 def submit(jobID, nodeslots, sparkcommand):
     getenvironment()
@@ -211,6 +222,7 @@ def submit(jobID, nodeslots, sparkcommand):
     rawout = subprocess.check_output(command, universal_newlines=True, shell=True)
     driverJobID = rawout.split(" ")[1].lstrip("<").rstrip(">")
     return driverJobID
+
 
 def destroy(jobID):
     if jobID is '':
@@ -229,6 +241,7 @@ def destroy(jobID):
             for driver in drivers:
                 bkilljob(driver['jobid'])
 
+
 def start(command = 'pyspark'):
     if args.ipython is True:
         os.environ['PYSPARK_DRIVER_PYTHON'] = 'ipython'
@@ -241,6 +254,7 @@ def start(command = 'pyspark'):
         print('\n')
     os.system(command)
 
+
 def setupnotebook():
     getenvironment()
     if spawn.find_executable('jupyter') is None:
@@ -251,6 +265,7 @@ def setupnotebook():
     os.environ['JUPYTER_RUNTIME_DIR'] = '/scratch/{}'.format(os.getenv('USER'))
     address = os.getenv('MASTER')[8:][:-5]
     return address 
+
     
 def launchAndWait():
         jobID  = launch(args.hard_runtime)
@@ -262,6 +277,7 @@ def launchAndWait():
             sys.stdout.flush()
         os.environ["MASTER"] = "spark://{}:7077".format(master)
         return master, jobID
+
 
 def submitAndDestroy(jobID, driverslots, sparksubargs):
     master=getmasterbyjobID(jobID)
@@ -275,11 +291,13 @@ def submitAndDestroy(jobID, driverslots, sparksubargs):
         time.sleep(30)
     destroy(jobID)
 
+
 def checkforupdate():
     currentdir = os.getcwd()
     scriptdir = os.path.dirname(os.path.realpath(__file__))
     os.chdir(scriptdir)
     output = subprocess.check_output('git fetch --dry-run 2>&1', universal_newlines=True, shell=True) 
+    os.chdir(currentdir)
     if "origin" in output: 
         reply = raw_input("This script is not up to date. Would you like to update now? (y/n) ")
         if reply == 'y':
@@ -287,6 +305,7 @@ def checkforupdate():
             sys.exit()
         else: 
             return
+
 
 def update():
     currentdir = os.getcwd()
@@ -299,6 +318,7 @@ def update():
     except:
         print "Update failed."
     os.chdir(currentdir)
+
 
 def stopworker(masterjobID, terminatew, workerlist, skipcheckstop):
     workername = "W{}".format(masterjobID)
@@ -345,6 +365,7 @@ def checkstop(inval, jobtype):
     else:
         return True
 
+
 def selectionlist(joblist, jobtype):
     i = 0 
     selectlist = {}
@@ -367,9 +388,8 @@ def selectionlist(joblist, jobtype):
                 print "Invalid selection."
         return jobID
 
-if __name__ == "__main__":
 
-    checkforupdate()
+if __name__ == "__main__":
     versiontypes = SPARKVERSIONS.keys()
 
     skipcheckstop = False
