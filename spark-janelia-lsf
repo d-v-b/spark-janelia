@@ -249,8 +249,8 @@ def start(command = 'pyspark'):
         address = setupnotebook()
         os.environ['JUPYTER_RUNTIME_DIR'] = '/scratch/{}'.format(os.getenv('USER'))
         print('\n')
-        print('View your notebooks at http://' + os.environ['HOSTNAME'] + ':9999')
-        print('View the status of your cluster at http://' + address + ':8080')
+        print('View your notebooks at http://' + os.environ['HOSTNAME'] + '.int.janelia.org:9999')
+        print('View the status of your cluster at http://' + os.environ['HOSTNAME'] + '.int.janelia.org:4040')
         print('\n')
     os.system(command)
 
