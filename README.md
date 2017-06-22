@@ -1,6 +1,8 @@
 # Spark Janelia
 
-Scripts, utilities, and community for launching Spark on the Janelia Research Center cluster. If you have questions you can come hang out in the public freeman lab [chatroom](https://gitter.im/freeman-lab/discussion) on gitter (or #thefreemanlab on freenode).
+Scripts, utilities, and community for launching Spark on the Janelia Research Center cluster. If you have questions you can come hang out in the public freeman lab [chatroom](https://gitter.im/freeman-lab/discussion) on gitter (or #thefreemanlab on freenode). 
+
+spark-janelia-lsf is an updated version that works with IBM Spectrum LSF, which will become our new scheduler in the coming months. 
 
 ---
 ### Using Spark
@@ -39,7 +41,14 @@ While logged in to one of Janelia cluster's login nodes, submit a request to run
 ```
 spark-janelia launch -n <number_of_nodes>
 ```
-Each node has 16 cores and 100GB of RAM for Spark to use. You should target the number of nodes you request based on the size of the data you are working with or the amount of neccessary computation (or both). A good rule of thumb is to use enough nodes so the total amount of RAM is about twice the total size of your data set. Check the status of your request using the `qstat` command. When the status is listed as `r` (for "ready"), proceed.
+This will start a master, then <number_of_nodes> workers. Each worker will run as a separate job, which means that the cluster will be available with as many nodes out of the requested number that can be scheduled immediately. Further nodes will come online as slots become available. 
+
+Each node has 15 cores and 75GB of RAM for Spark to use. You should target the number of nodes you request based on the size of the data you are working with or the amount of neccessary computation (or both). A good rule of thumb is to use enough nodes so the total amount of RAM is about twice the total size of your data set. Check the status of your request using the `qstat` command. When the status is listed as `r` (for "ready"), proceed.
+
+```
+spark-janelia launchall -n <number_of_nodes>
+```
+This will launch a cluster in the old method, where all nodes will need to be available in order fo the cluster to launch. 
 
 Every Spark cluster has a unique node designated as the "driver" from which all computations are initiated. To log in to the driver for your Spark cluster, use:
 ```
@@ -71,6 +80,19 @@ it will be helpful to have the Spark cluster shut down automatically after compl
 spark-janelia <args> lsd -s <submit_arguments>
 ```
 will submit your application and delete the cluter job, once it has finished. `lsd` is short for `launch-submit-and-destroy` and the meaning of `submit_arguments` is along the lines of `spark-janelia submit`. For an example of how to set up a Python script for this workflow, see the example in `examples/lsd-example.py`.
+
+#### Adding nodes to a running cluster
+To add nodes to your Spark cluster:
+```
+spark-janelia -n <NUM_NODES> -j <JOBIDofMASTER> add-workers
+```
+
+#### Removing workers from a running cluster
+To remove nodes from a Spark cluster:
+```
+spark-janelia -j <JOBIDofMASTER> -n <NUM_NODES> [-f, --force] remove-workers
+```
+By default the command will present a list of nodes to choose from. With the `-f` flag, it will remove the number of nodes requested arbitrarily. 
 
 ---
 ### Using the Jupyter notebook
@@ -106,6 +128,11 @@ spark-janelia destroy
 ```
 You can check that these nodes have successfully been released with the `qstat` command.
 
+For multiple running clusters, use
+```
+spark-janelia stopcluster
+```
+with an optional -j jobid flag. 
 ---
 ## Questions and comments
 Many Spark users at Janelia hang out in the freeman lab [gitter chat rooom](https://gitter.im/freeman-lab/discussion). If you have questions or comments, or just want to join the conversation, please drop by!
