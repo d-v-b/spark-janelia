@@ -24,15 +24,11 @@ cat id_dsa.pub >> authorized_keys
 ```
 Navigate to a location in your home directory where you will store these scripts, then call
 ```
-git clone https://github.com/freeman-lab/spark-janelia
+git clone https://github.com/d-v-b/spark-janelia
 ```
 Add a line with this location to your bash profile (usually located in `~/.bash_profile`)
 ```
 export PATH=/path/to/spark-janelia:$PATH
-```
-While doing this, also add this line to point your PATH to a recent version of Python:
-```
-export PATH=/usr/local/python-2.7.11/bin/:$PATH
 ```
 If you want to continue in the same session, source your profile with `source ~/.bash_profile`.
 
